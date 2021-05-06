@@ -69,35 +69,102 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	//static char a = 0;
 	static int keyflag = 0;
-	//static int a, b;
+	static int m = 0, n = 0;
 	static int a = 0, b = 0;
+	static int nX, nY;
+	static int nXa, nXb, nYa, nYb;
+	static BOOL bSw = TRUE; /*(b Switch) */
+	HPEN hPen;
+	static POINT p0int;
+	
 
 	PAINTSTRUCT pS;
 
 
 	switch (uMsg)
 	{
+	case WM_LBUTTONDOWN:
+		nXa = LOWORD(lParam);
+		nYa = HIWORD(lParam);
+		bSw = TRUE;
+		return FALSE;
+
+	case WM_RBUTTONDOWN:
+		nXb = LOWORD(lParam);
+		nYb = HIWORD(lParam);
+		bSw = FALSE;
+		InvalidateRect(hWnd, NULL, TRUE);
+		UpdateWindow(hWnd);
+		return FALSE;
+/*
+	case WM_LBUTTONDOWN:
+		nX = LOWORD(lParam);
+		nY = HIWORD(lParam);
+		SetPixel(hDC, nX, nY, RGB(255, 0, 0));
+		ReleaseDC(hWnd, hDC);
+
+		return FALSE;
+
+	case WM_RBUTTONDOWN:
+		InvalidateRect(hWnd, NULL, TRUE);
+		UpdateWindow(hWnd);
+
+		return FALSE;
+*/
+
+	case WM_PAINT:
+		if (bSw == FALSE) {
+			hDC = BeginPaint(hWnd, &pS);
+			hPen = CreatePen(PS_SOLID, 0, RGB(255, 0, 0));
+			SelectObject(hDC, hPen);
+			MoveToEx(hDC, nXa, nYa, &p0int);
+			LineTo(hDC, nXb, nYb);
+			DeleteObject(hPen);
+			ReleaseDC(hWnd, hDC);
+			EndPaint(hWnd, &pS);
+			//bSw = TRUE;
+			
+		}
+
+		return FALSE;
+
 	case WM_KEYDOWN:
 		if (LOWORD(wParam) == VK_RETURN) /* Enter key */ {
 			SetTimer(hWnd, 1, 1000, NULL); /* Make timer*/
+			SetTimer(hWnd, 2, 500, NULL);
 		}
 
 		else if (LOWORD(wParam) == VK_SPACE) {
 			KillTimer(hWnd, 1); /* Kill Timer*/
+			KillTimer(hWnd, 2);
 		}
 			return FALSE;
 
 	case WM_TIMER:
-		a++;
-		if (a == 60) {
-			b++;
-			a = 0;
-		}
-		InvalidateRect(hWnd, NULL, TRUE);
-		UpdateWindow(hWnd);
-		sprintf_s(szTextT, "Minute: %d,   Second: %d ", b, a);
+		if (wParam == 1) {
+			a++; /* Timer_No.1*/
+			if (a == 60) {
+				b++;
+				a = 0;
+			}
+			//InvalidateRect(hWnd, NULL, TRUE);
+			//UpdateWindow(hWnd);
+			sprintf_s(szTextT, "Minute: %d,   Second: %d ", b, a);
 			TextOut(hDC, 5, 50, szTextT, lstrlen(szTextT));
+		}
 
+		if (wParam == 2) {
+			m++; /*Timer_No.2*/
+			if (m == 60) {
+				n++;
+				m = 0;
+			}
+
+			//InvalidateRect(hWnd, NULL, TRUE);
+			//UpdateWindow(hWnd);
+			sprintf_s(szTextT, "N: %d,   M: %d ", n, m);
+			TextOut(hDC, 5, 80, szTextT, lstrlen(szTextT)); /*TextOut(hDC, 좌측공백, 상측공백*/
+		}
 		return FALSE;
 
 	case WM_DESTROY:
